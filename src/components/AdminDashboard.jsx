@@ -16,6 +16,32 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
+  const handleDeleteDonor = async (id) => {
+    if (window.confirm('Are you sure you want to delete this donor?')) {
+      try {
+        await axios.delete(`${API_BASE_URL}/api/donors/${id}`);
+        setDonors(donors.filter((donor) => donor.id !== id));
+        setStats(prev => ({ ...prev, totalDonors: prev.totalDonors - 1 }));
+      } catch (error) {
+        console.error('Error deleting donor:', error);
+        alert('Failed to delete donor. Please try again.');
+      }
+    }
+  };
+
+  const handleDeleteRequest = async (id) => {
+    if (window.confirm('Are you sure you want to close this request?')) {
+      try {
+        await axios.delete(`${API_BASE_URL}/api/emergency-requests/${id}`);
+        setRequests(requests.filter((request) => request.id !== id));
+        setStats(prev => ({ ...prev, totalRequests: prev.totalRequests - 1 }));
+      } catch (error) {
+        console.error('Error deleting request:', error);
+        alert('Failed to close request. Please try again.');
+      }
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -152,7 +178,7 @@ const AdminDashboard = () => {
                         </td>
                         <td>
                           <button className="action-btn">View</button>
-                          <button className="action-btn delete">Delete</button>
+                          <button className="action-btn delete" onClick={() => handleDeleteDonor(donor.id)}>Delete</button>
                         </td>
                       </tr>
                     ))}
@@ -203,7 +229,7 @@ const AdminDashboard = () => {
                         </td>
                         <td>
                           <button className="action-btn">View</button>
-                          <button className="action-btn delete">Close</button>
+                          <button className="action-btn delete" onClick={() => handleDeleteRequest(request.id)}>Close</button>
                         </td>
                       </tr>
                     ))}
