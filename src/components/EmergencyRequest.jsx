@@ -33,7 +33,29 @@ const EmergencyRequest = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/api/emergency-requests`, formData);
+      const requiredByHours =
+        formData.urgencyLevel === 'CRITICAL' ? 2 :
+        formData.urgencyLevel === 'HIGH' ? 6 :
+        formData.urgencyLevel === 'MEDIUM' ? 12 : 24;
+
+      const requiredByDate = new Date();
+      requiredByDate.setHours(requiredByDate.getHours() + requiredByHours);
+      const requiredBy = requiredByDate.toISOString().slice(0, 19);
+
+      const payload = {
+        patientName: formData.patientName,
+        bloodGroup: formData.bloodGroup,
+        unitsRequired: Number(formData.requiredUnits),
+        hospitalName: formData.hospitalName,
+        hospitalAddress: formData.hospitalLocation,
+        city: formData.hospitalLocation,
+        contactPerson: formData.contactPerson,
+        contactNumber: formData.contactPhone,
+        requiredBy,
+        additionalInfo: formData.additionalInfo,
+      };
+
+      await axios.post(`${API_BASE_URL}/api/emergency-requests`, payload);
       setMessage('🚨 Emergency request created! Donors will be notified.');
       setFormData({
         bloodGroup: '',
@@ -51,7 +73,8 @@ const EmergencyRequest = () => {
       setTimeout(() => setMessage(''), 4000);
     } catch (_error) {
       console.error('Failed to create emergency request:', _error);
-      setMessage('❌ Failed to create request. Please try again.');
+      const backendError = _error?.response?.data?.message;
+      setMessage(backendError ? `❌ ${backendError}` : '❌ Failed to create request. Please try again.');
     }
     setLoading(false);
   };
